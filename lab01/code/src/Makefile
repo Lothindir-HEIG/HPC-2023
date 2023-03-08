@@ -9,7 +9,7 @@ BIN=a_star
 all: $(BIN)
 
 debug: $(SRC_C)
-	$(CC) $(DEBUGFLAGS) -o $(BIN) $<
+	$(CC) $(DEBUGFLAGS) -o $(BIN) $@ -c $<
 
 $(BIN): $(OBJC)
 	$(CC) -o $(BIN) $^ -lubsan

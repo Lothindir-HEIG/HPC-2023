@@ -20,11 +20,36 @@ typedef struct Position{
 // d'une grille
 typedef struct Grid_Component {
     int value;
-    struct Grid_Component* left;
+    struct Grid_Component *left;
     struct Grid_Component* right;
     struct Grid_Component* up;
     struct Grid_Component* down;
 } Grid_Component;
+
+// Strucutre représentant un noeud de l'alfabet A*
+typedef struct Node
+{
+    Position *pos;
+    int g;
+    int h;
+    int f;
+    struct Node *parent;
+} Node;
+
+// Structure permettant de créer une grille contenant les bornes et la structure de données (tableau ou liste chainée)
+typedef struct Grid
+{
+    int rows;
+    int cols;
+    Position *src;
+    Position *dst;
+    union data
+    {
+        int **grid;
+        Grid_Component *head;
+    } data;
+
+} Grid;
 
 //Cette fonction initialise un tableau en 2 dimension en lisant un fichier. Elle permet
 //  également de trouver le point de départ (A) et le point d'arriver (D) si spécifier dans 

@@ -7,9 +7,8 @@
 
 #include "utils.h"
 
-
 int** init_grid_tab(int rows, int columns, int DEBUG, Position* src, Position* dst){
-    FILE *file = fopen("input.txt", "r");
+    FILE *file = fopen("input_small.txt", "r");
     if (file == NULL) {
         fprintf(stderr, "Erreur : impossible d'ouvrir le fichier.\n");
         exit(EXIT_FAILURE);
