@@ -10,7 +10,7 @@
 
 #include "a_star.h"
 
-#define PARAM_COUNT 4
+#define PARAM_COUNT 5
 #define PARAM_A_STAR_TAB "tab"
 #define PARAM_A_STAR_STRUCT "struct"
 
@@ -22,6 +22,7 @@ int main(int argc, char **argv)
     uint8_t type_a_star;
     int rows_map, cols_map;
     int **grid;
+    char *input_file;
     Grid_Component *head;
     Position *src = malloc(sizeof(Position));
     Position *dst = malloc(sizeof(Position));
@@ -47,6 +48,12 @@ int main(int argc, char **argv)
 
     cols_map = atol(argv[2]);
     rows_map = atol(argv[3]);
+    input_file = argv[4];
+
+    char *input_ext = malloc(sizeof(char) * (strlen(input_file) + 1 + 4));
+    strcpy(input_ext, input_file);
+    strcat(input_ext, ".txt");
+    printf("Input file : %s\n", input_ext);
 
     Grid *grid_struct = malloc(sizeof(Grid));
     grid_struct->rows = rows_map;
@@ -57,7 +64,7 @@ int main(int argc, char **argv)
     if (type_a_star)
     {
         printf("Generating struct\n");
-        head = init_grid_struct(rows_map, cols_map, DEBUG, src, dst);
+        head = init_grid_struct(rows_map, cols_map, DEBUG, src, dst, input_ext);
 
         printf("Source point : (%d, %d)\n", src->x, src->y);
         printf("Destination point : (%d, %d)\n", dst->x, dst->y);
@@ -82,7 +89,7 @@ int main(int argc, char **argv)
     else
     {
         printf("Generating grid\n");
-        grid = init_grid_tab(rows_map, cols_map, DEBUG, src, dst);
+        grid = init_grid_tab(rows_map, cols_map, DEBUG, src, dst, input_ext);
 
         printf("Source point : (%d, %d)\n", src->x, src->y);
         printf("Destination point : (%d, %d)\n", dst->x, dst->y);
@@ -100,6 +107,7 @@ int main(int argc, char **argv)
     free(src);
     free(dst);
     free(grid_struct);
+    free(input_ext);
 
     switch (error)
     {

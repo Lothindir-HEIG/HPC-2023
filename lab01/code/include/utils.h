@@ -90,12 +90,14 @@ typedef struct Grid
 // Cette fonction initialise un tableau en 2 dimension en lisant un fichier. Elle permet
 //   également de trouver le point de départ (A) et le point d'arriver (D) si spécifier dans
 //   le fichier input.txt
-int **init_grid_tab(int rows, int columns, int DEBUG, Position *src, Position *dst);
+int **init_grid_tab(int rows, int columns, int DEBUG, Position *src, Position *dst, char *filename);
 
 // Cette fonction initialise une liste chainée en lisant un fichier. Elle permet
 //   également de trouver le point de départ (A) et le point d'arriver (D) si spécifier dans
 //   le fichier input.txt
-Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, Position *dst);
+Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, Position *dst, char *filename);
 
 // Cette fonction permet d'afficher une grille en 2 dimension avec les differentes listes (open, closed, path)
-void print_grid(Grid *grid, Node *open_list, int open_list_size, Node *closed_list, int closed_list_size, Node *path, int path_size);
+void print_grid(Grid *grid, Node **open_list, int open_list_size, Node **closed_list, int closed_list_size, Node **path, int path_size);
+
+Node *is_in_list(Node **list, int list_size, int x, int y);

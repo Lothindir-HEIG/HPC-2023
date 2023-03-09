@@ -1,0 +1,7 @@
+time ./a_star struct 100 100 input100
+time ./a_star struct 200 200 input200
+time ./a_star struct 250 250 input250
+time ./a_star struct 300 300 input300
+time ./a_star struct 500 500 input500
+time ./a_star struct 1000 1000 input1000
+time ./a_star struct 2500 2500 input2500

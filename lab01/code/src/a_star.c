@@ -3,7 +3,6 @@
 
 int compute_manhattan_distance(Position *src, Position *dst);
 void remove_element_and_shift(Node **list, int index, int *list_size);
-Node *is_in_list(Node **list, int list_size, int x, int y);
 void check_neighbour(Grid_Node *current, int direction, LinkedNode **open_list_head, LinkedNode **closed_list_head, Grid *grid);
 
 Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
@@ -35,9 +34,9 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
             if (current->next->node->costs.f < lowest_f_node->node->costs.f)
             {
                 prev = current;
-                current = current->next;
-                lowest_f_node = current;
+                lowest_f_node = current->next;
             }
+            current = current->next;
         }
 
         if (prev)
@@ -58,7 +57,7 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
 
         current = closed_list;
 
-        printf("Lowest node is (%d, %d) with f = %d\n", current->node->pos.x, current->node->pos.y, current->node->costs.f);
+        // printf("Lowest node is (%d, %d) with f = %d\n", current->node->pos.x, current->node->pos.y, current->node->costs.f);
 
         if (current->node->pos.x == grid->dst->x && current->node->pos.y == grid->dst->y)
         {
@@ -68,9 +67,9 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
                 free(cur->node);
                 cur->node = NULL;
                 if (cur->next)
-                {
                     open_list->next = cur->next;
-                }
+                else
+                    open_list->next = NULL;
                 free(cur);
                 cur = NULL;
             }
@@ -82,9 +81,9 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
                 free(cur->node);
                 cur->node = NULL;
                 if (cur->next)
-                {
                     closed_list->next = cur->next;
-                }
+                else
+                    closed_list->next = NULL;
                 free(cur);
                 cur = NULL;
             }
@@ -108,9 +107,9 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
             free(cur->node);
             cur->node = NULL;
             if (cur->next)
-            {
                 open_list->next = cur->next;
-            }
+            else
+                open_list->next = NULL;
             free(cur);
             cur = NULL;
         }
@@ -125,9 +124,9 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
             free(cur->node);
             cur->node = NULL;
             if (cur->next)
-            {
                 closed_list->next = cur->next;
-            }
+            else
+                closed_list->next = NULL;
             free(cur);
             cur = NULL;
         }
@@ -274,18 +273,6 @@ void remove_element_and_shift(Node **list, int index, int *list_size)
     *list_size -= 1;
 }
 
-Node *is_in_list(Node **list, int list_size, int x, int y)
-{
-    for (int i = 0; i < list_size; i++)
-    {
-        if (list[i]->pos.x == x && list[i]->pos.y == y)
-        {
-            return list[i];
-        }
-    }
-    return 0;
-}
-
 void check_neighbour(Grid_Node *current, int direction, LinkedNode **open_list_head, LinkedNode **closed_list_head, Grid *grid)
 {
     Grid_Component *neighbour;
@@ -326,7 +313,7 @@ void check_neighbour(Grid_Node *current, int direction, LinkedNode **open_list_h
         closed_list_node = closed_list_node->next;
     }
 
-    printf("Checking node at (%d, %d)\n", current->pos.x + j, current->pos.y + i);
+    // printf("Checking node at (%d, %d)\n", current->pos.x + j, current->pos.y + i);
 
     Position neighbour_position = {current->pos.x + j, current->pos.y + i};
     int g = current->costs.g + 10;

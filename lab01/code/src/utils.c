@@ -7,9 +7,9 @@
 
 #include "utils.h"
 
-int **init_grid_tab(int rows, int columns, int DEBUG, Position *src, Position *dst)
+int **init_grid_tab(int rows, int columns, int DEBUG, Position *src, Position *dst, char *input_file)
 {
-    FILE *file = fopen("input300.txt", "r");
+    FILE *file = fopen(input_file, "r");
     if (file == NULL)
     {
         fprintf(stderr, "Erreur : impossible d'ouvrir le fichier.\n");
@@ -74,9 +74,9 @@ int **init_grid_tab(int rows, int columns, int DEBUG, Position *src, Position *d
     return grid;
 }
 
-Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, Position *dst)
+Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, Position *dst, char *input_file)
 {
-    FILE *fp = fopen("input_small.txt", "r");
+    FILE *fp = fopen(input_file, "r");
     if (fp == NULL)
     {
         fprintf(stderr, "Unable to open file %s", "input.txt");
@@ -168,7 +168,7 @@ Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, P
     return head;
 }
 
-void print_grid(Grid *grid, Node *open_list, int open_list_size, Node *closed_list, int closed_list_size, Node *path, int path_size)
+void print_grid(Grid *grid, Node **open_list, int open_list_size, Node **closed_list, int closed_list_size, Node **path, int path_size)
 {
     printf("Contenu de la grille :\n");
 
@@ -203,4 +203,16 @@ void print_grid(Grid *grid, Node *open_list, int open_list_size, Node *closed_li
     for (int c = 0; c < grid->cols; c++)
         printf("──");
     printf("╯\n");
+}
+
+Node *is_in_list(Node **list, int list_size, int x, int y)
+{
+    for (int i = 0; i < list_size; i++)
+    {
+        if (list[i]->pos.x == x && list[i]->pos.y == y)
+        {
+            return list[i];
+        }
+    }
+    return 0;
 }
