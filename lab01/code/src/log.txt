@@ -1,0 +1,48 @@
+Labo1 HPC - A* implementation
+Input file : input100.txt
+Generating struct
+Source point : (0, 0)
+Destination point : (99, 99)
+The path is found
+Labo1 HPC - A* implementation
+Input file : input200.txt
+Generating struct
+Source point : (181, 31)
+Destination point : (4, 174)
+The path is found
+Labo1 HPC - A* implementation
+Input file : input250.txt
+Generating struct
+Source point : (0, 249)
+Destination point : (227, 41)
+The path is found
+Labo1 HPC - A* implementation
+Input file : input300.txt
+Generating struct
+Source point : (0, 299)
+Destination point : (299, 0)
+The path is found
+Labo1 HPC - A* implementation
+Input file : input100.txt
+Generating grid
+Source point : (0, 0)
+Destination point : (99, 99)
+The path is found
+Labo1 HPC - A* implementation
+Input file : input200.txt
+Generating grid
+Source point : (181, 31)
+Destination point : (4, 174)
+The path is found
+Labo1 HPC - A* implementation
+Input file : input250.txt
+Generating grid
+Source point : (0, 249)
+Destination point : (227, 41)
+The path is found
+Labo1 HPC - A* implementation
+Input file : input300.txt
+Generating grid
+Source point : (0, 299)
+Destination point : (299, 0)
+The path is found

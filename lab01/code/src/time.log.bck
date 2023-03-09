@@ -1,0 +1,56 @@
+Struct - size 100
+real 0.00
+user 0.00
+sys 0.00
+Tab - size 100
+real 0.03
+user 0.03
+sys 0.00
+Struct - size 200
+real 4.82
+user 4.82
+sys 0.00
+Tab - size 200
+real 5.04
+user 5.04
+sys 0.00
+Struct - size 250
+real 14.18
+user 14.18
+sys 0.00
+Tab - size 250
+real 11.75
+user 11.74
+sys 0.00
+Struct - size 300
+real 26.11
+user 26.10
+sys 0.00
+Tab - size 300
+real 27.41
+user 27.41
+sys 0.00
+Struct - size 500
+real 239.42
+user 239.37
+sys 0.01
+Tab - size 500
+real 185.99
+user 185.98
+sys 0.00
+Struct - size 1000
+real 33.47
+user 33.43
+sys 0.03
+Tab - size 1000
+real 821.62
+user 821.52
+sys 0.02
+Struct - size 2500
+real 7152.81
+user 7152.41
+sys 0.13
+Tab - size 2500
+real 6.53
+user 6.52
+sys 0.01
