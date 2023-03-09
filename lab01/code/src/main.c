@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
     if (argc != PARAM_COUNT)
     {
-        fprintf(stderr, "usage: %s list|array data_len\n", argv[0]);
+        fprintf(stderr, "usage: %s list|array data_len input_file\n", argv[0]);
         return EXIT_FAILURE;
     }
 

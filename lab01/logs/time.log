@@ -1,6 +1,14 @@
+Struct - size 50
+real 0.006
+user 0.01
+sys 0.00
+Tab - size 50
+real 0.008
+user 0.01
+sys 0.00
 Struct - size 100
-real 0.00
-user 0.00
+real 0.011
+user 0.01
 sys 0.00
 Tab - size 100
 real 0.03

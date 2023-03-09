@@ -126,6 +126,9 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
         check_neighbour(current->node, GRID_DIRECTION_DOWN, &open_list, &closed_list, grid);
     }
 
+    if (DEBUG)
+        print_grid_struct(grid, open_list, closed_list, NULL);
+
     // Free dynamically allocated memory
     if (open_list)
     {
