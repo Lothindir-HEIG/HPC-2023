@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS= -O3 -std=c11 -Wall -Wextra -pedantic -g -I../include
+# CFLAGS= -std=c11 -Wall -Wextra -pedantic -g -I../include
 DEBUGFLAGS= -std=c11 -Wall -Wextra -pedantic -g -I../include
 
 SRC_C=$(wildcard *.c)
@@ -9,7 +10,7 @@ BIN=a_star
 all: $(BIN)
 
 debug: $(SRC_C)
-	$(CC) $(DEBUGFLAGS) -o $(BIN) $@ -c $<
+	$(CC) $(DEBUGFLAGS) -o $(BIN) $^
 
 $(BIN): $(OBJC)
 	$(CC) -o $(BIN) $^ -lubsan

@@ -14,7 +14,7 @@
 #define PARAM_A_STAR_TAB "tab"
 #define PARAM_A_STAR_STRUCT "struct"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int main(int argc, char **argv)
 {
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
         printf("Destination point : (%d, %d)\n", dst->x, dst->y);
 
         grid_struct->data.head = head;
-        error = compute_path_struct(grid_struct, NULL);
+        error = compute_path_struct(grid_struct, DEBUG, NULL);
 
         // Free de la liste chainée
         Grid_Component *curr = head;
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
         printf("Destination point : (%d, %d)\n", dst->x, dst->y);
 
         grid_struct->data.grid = grid;
-        error = compute_path_tab(grid_struct, NULL);
+        error = compute_path_tab(grid_struct, DEBUG, NULL);
 
         for (int i = 0; i < rows_map; i++)
         {
