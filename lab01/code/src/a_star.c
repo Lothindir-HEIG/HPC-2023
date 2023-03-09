@@ -61,33 +61,61 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
 
         if (current->node->pos.x == grid->dst->x && current->node->pos.y == grid->dst->y)
         {
-            while (open_list && open_list->next)
+            if (DEBUG)
             {
-                LinkedNode *cur = open_list->next;
-                free(cur->node);
-                cur->node = NULL;
-                if (cur->next)
-                    open_list->next = cur->next;
-                else
-                    open_list->next = NULL;
-                free(cur);
-                cur = NULL;
-            }
-            free(open_list);
+                LinkedNode *path = calloc(1, sizeof(LinkedNode));
+                path->node = current->node;
+                while (current->node->parent)
+                {
+                    LinkedNode *temp = malloc(sizeof(LinkedNode));
+                    temp->node = current->node->parent;
+                    temp->next = path;
+                    path = temp;
+                    current->node = current->node->parent;
+                }
 
-            while (closed_list && closed_list->next)
-            {
-                LinkedNode *cur = closed_list->next;
-                free(cur->node);
-                cur->node = NULL;
-                if (cur->next)
-                    closed_list->next = cur->next;
-                else
-                    closed_list->next = NULL;
-                free(cur);
-                cur = NULL;
+                print_grid_struct(grid, open_list, closed_list, path);
+
+                while (path)
+                {
+                    LinkedNode *temp = path;
+                    path = path->next;
+                    free(temp);
+                }
             }
-            free(closed_list);
+            if (open_list)
+            {
+                while (open_list->next)
+                {
+                    LinkedNode *cur = open_list->next;
+                    free(cur->node);
+                    cur->node = NULL;
+                    if (cur->next)
+                        open_list->next = cur->next;
+                    else
+                        open_list->next = NULL;
+                    free(cur);
+                    cur = NULL;
+                }
+                free(open_list);
+            }
+
+            if (closed_list)
+            {
+                while (closed_list->next)
+                {
+                    LinkedNode *cur = closed_list->next;
+                    free(cur->node);
+                    cur->node = NULL;
+                    if (cur->next)
+                        closed_list->next = cur->next;
+                    else
+                        closed_list->next = NULL;
+                    free(cur);
+                    cur = NULL;
+                }
+                free(closed_list);
+            }
 
             return PATH_FOUND;
         }
@@ -180,7 +208,7 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
                     current = current->parent;
                 }
 
-                print_grid(grid, open_list, open_list_index, closed_list, closed_list_index, path, path_index);
+                print_grid_tab(grid, open_list, open_list_index, closed_list, closed_list_index, path, path_index);
 
                 free(path);
             }
@@ -244,7 +272,7 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
 
     if (DEBUG)
     {
-        print_grid(grid, open_list, open_list_index, closed_list, closed_list_index, NULL, 0);
+        print_grid_tab(grid, open_list, open_list_index, closed_list, closed_list_index, NULL, 0);
     }
 
     // Free dynamically allocated memory

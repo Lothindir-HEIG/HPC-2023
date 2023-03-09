@@ -98,6 +98,9 @@ int **init_grid_tab(int rows, int columns, int DEBUG, Position *src, Position *d
 Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, Position *dst, char *filename);
 
 // Cette fonction permet d'afficher une grille en 2 dimension avec les differentes listes (open, closed, path)
-void print_grid(Grid *grid, Node **open_list, int open_list_size, Node **closed_list, int closed_list_size, Node **path, int path_size);
+void print_grid_tab(Grid *grid, Node **open_list, int open_list_size, Node **closed_list, int closed_list_size, Node **path, int path_size);
+
+// Cette fonction permet d'afficher une grille en 2 dimension avec les differentes listes (open, closed, path)
+void print_grid_struct(Grid *grid, LinkedNode *open_list, LinkedNode *closed_list, LinkedNode *path);
 
 Node *is_in_list(Node **list, int list_size, int x, int y);

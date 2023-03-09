@@ -168,7 +168,7 @@ Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, P
     return head;
 }
 
-void print_grid(Grid *grid, Node **open_list, int open_list_size, Node **closed_list, int closed_list_size, Node **path, int path_size)
+void print_grid_tab(Grid *grid, Node **open_list, int open_list_size, Node **closed_list, int closed_list_size, Node **path, int path_size)
 {
     printf("Contenu de la grille :\n");
 
@@ -203,6 +203,73 @@ void print_grid(Grid *grid, Node **open_list, int open_list_size, Node **closed_
     for (int c = 0; c < grid->cols; c++)
         printf("──");
     printf("╯\n");
+}
+
+void print_grid_struct(Grid *grid, LinkedNode *open_list, LinkedNode *closed_list, LinkedNode *path)
+{
+    char *grid_tab = calloc(grid->rows * grid->cols, sizeof(char));
+
+    LinkedNode *curr = open_list;
+    while (curr)
+    {
+        grid_tab[curr->node->pos.y + curr->node->pos.x * grid->cols] = 'O';
+        curr = curr->next;
+    }
+
+    curr = closed_list;
+    while (curr)
+    {
+        grid_tab[curr->node->pos.y + curr->node->pos.x * grid->cols] = 'C';
+        curr = curr->next;
+    }
+
+    curr = path;
+    while (curr)
+    {
+        grid_tab[curr->node->pos.y + curr->node->pos.x * grid->cols] = 'P';
+        curr = curr->next;
+    }
+
+    printf("Contenu de la grille :\n");
+
+    printf("╭─");
+    for (int c = 0; c < grid->cols; c++)
+        printf("──");
+    printf("╮\n");
+
+    Grid_Component *curr_row = grid->data.head;
+    for (int i = 0; i < grid->rows; i++)
+    {
+        Grid_Component *curr = curr_row;
+        printf("│ ");
+        for (int j = 0; j < grid->cols; j++)
+        {
+            if (grid->src->x == j && grid->src->y == i)
+                printf("%sS%s ", ANSI_COLOR_GRN, ANSI_COLOR_RST);
+            else if (grid->dst->x == j && grid->dst->y == i)
+                printf("%sD%s ", ANSI_COLOR_RED, ANSI_COLOR_RST);
+            else if (grid_tab[i + j * grid->cols] == 'P')
+                printf("%s●%s ", ANSI_COLOR_YEL, ANSI_COLOR_RST);
+            else if (curr->value == 1)
+                printf("■ ");
+            else if (grid_tab[i + j * grid->cols] == 'O')
+                printf("%s⬡%s ", ANSI_COLOR_CYN, ANSI_COLOR_RST);
+            else if (grid_tab[i + j * grid->cols] == 'C')
+                printf("%s⬢%s ", ANSI_COLOR_BLU, ANSI_COLOR_RST);
+            else
+                printf("- ");
+            curr = curr->right;
+        }
+        printf("│\n");
+        curr_row = curr_row->down;
+    }
+
+    printf("╰─");
+    for (int c = 0; c < grid->cols; c++)
+        printf("──");
+    printf("╯\n");
+
+    free(grid_tab);
 }
 
 Node *is_in_list(Node **list, int list_size, int x, int y)
