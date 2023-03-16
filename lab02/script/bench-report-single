@@ -1,0 +1,42 @@
+#!/bin/sh
+
+LOOPS=1
+GREP_STRING="M*/s"
+
+while getopts :t:m:i:g:h:f:a flag; do
+   case "$flag" in
+   t) TEST=$OPTARG ;;
+   m) MEMORY=$OPTARG ;;
+   i) LOOPS=$OPTARG ;;
+   g) GREP_STRING=$OPTARG ;;
+   f) FILENAME=$OPTARG ;;
+   h) HOSTNAME=$OPTARG ;;
+   a) APPEND=1 ;;
+   *)
+      echo "Usage: $0 -t <TEST> -m <MEMORY> -g <GREP_STRING> -h <HOSTNAME> [-i <LOOPS>] [-f FILENAME] [-a]"
+      exit 1
+      ;;
+   esac
+done
+
+
+if [ -z $FILENAME ]; then
+    FILE_OUTPUT=$HOSTNAME.$TEST.log
+else
+    FILE_OUTPUT=$HOSTNAME.$FILENAME.log
+fi
+
+if [ -z $APPEND  ]; then
+    > $FILE_OUTPUT
+fi
+
+
+
+bench_and_save() {
+    for i in $(seq 1 $LOOPS); do
+        likwid-bench -t $TEST -W N:$MEMORY:1 2>/dev/null | grep "$GREP_STRING" >> $FILE_OUTPUT
+    done
+}
+
+echo "# $TEST - $MEMORY" >> $FILE_OUTPUT
+bench_and_save
