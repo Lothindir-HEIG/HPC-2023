@@ -1,0 +1,24 @@
+# load - 10MB
+MByte/s:		24185.78
+MByte/s:		23874.35
+MByte/s:		24257.95
+MByte/s:		23977.13
+MByte/s:		24652.20
+Average:	 24189
+
+# load_sse - 10MB
+MByte/s:		34303.84
+MByte/s:		34994.69
+MByte/s:		32213.54
+MByte/s:		34303.58
+MByte/s:		33326.92
+Average:	 33827
+
+# load_avx - 10MB
+MByte/s:		41373.33
+MByte/s:		41446.31
+MByte/s:		42340.39
+MByte/s:		42467.22
+MByte/s:		41279.84
+Average:	 41781
+

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+while getopts :c:m:f: flag; do
+    case "$flag" in
+        c) L1_CACHE=$OPTARG ;;
+        m) MEMORY=$OPTARG ;;
+        f) FILENAME=$OPTARG ;;
+        *)
+            printf "Usage: $0 -c <L1_CACHE_SIZE> -m <BENCH_MEMORY> -f <FILENAME>"
+            exit 1
+            ;;
+    esac
+done
+
+VARIATIONS=("" "_sse" "_avx")
+for i in $(seq 0 $((${#VARIATIONS[@]}-1))); do
+    v=${VARIATIONS[$i]}
+    printf "Computing roofline - peakflops%s\n" $v
+    ./bench-report-single -t peakflops$v -m $L1_CACHE -i 5 -g "MFlops" -h $FILENAME -f "peakflops" -a 1> input$v.txt
+    ./bench-report-single -t load$v -m $MEMORY -i 5 -g "MByte" -h $FILENAME -f "bandwidth" -a 1>> input$v.txt
+    printf "\n"
+done

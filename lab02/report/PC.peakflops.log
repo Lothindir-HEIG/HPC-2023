@@ -1,0 +1,24 @@
+# peakflops - 32kB
+MFlops/s:		9264.71
+MFlops/s:		9299.50
+MFlops/s:		9211.93
+MFlops/s:		9286.78
+MFlops/s:		9249.01
+Average:	 9261
+
+# peakflops_sse - 32kB
+MFlops/s:		18172.95
+MFlops/s:		18587.45
+MFlops/s:		18569.48
+MFlops/s:		18119.32
+MFlops/s:		18622.82
+Average:	 18413
+
+# peakflops_avx - 32kB
+MFlops/s:		37008.97
+MFlops/s:		36893.82
+MFlops/s:		37116.07
+MFlops/s:		36718.09
+MFlops/s:		36516.62
+Average:	 36850
+

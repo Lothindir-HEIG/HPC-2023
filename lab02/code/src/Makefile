@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -O3 -DLIKWID_PERFMON -std=c11 -Wall -Wextra -pedantic -g -I../include -L /usr/bin/lib -I /usr/bin/include
+CFLAGS= -O3 -DLIKWID_PERFMON -std=c11 -Wall -Wextra -pedantic -g -I../include -L /usr/local/bin/lib -I /usr/local/bin/include
 DEBUGFLAGS= -std=c11 -Wall -Wextra -pedantic -g -I../include
 LDFLAGS= -llikwid
 

@@ -1,9 +1,0 @@
-# peakflops - 32kB
-MFlops/s:		5507.36
-# peakflops_sse - 32kB
-MFlops/s:		11245.15
-# peakflops_avx - 32kB
-MFlops/s:		22128.19
-# peakflops_avx - 32kB
-# peakflops_avx - 32kB
-MFlops/s:		21891.52
