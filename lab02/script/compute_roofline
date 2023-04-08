@@ -12,7 +12,8 @@ while getopts :c:m:f: flag; do
     esac
 done
 
-VARIATIONS=("" "_sse" "_avx")
+# VARIATIONS=("" "_sse" "_avx")
+VARIATIONS=("")
 for i in $(seq 0 $((${#VARIATIONS[@]}-1))); do
     v=${VARIATIONS[$i]}
     printf "Computing roofline - peakflops%s\n" $v

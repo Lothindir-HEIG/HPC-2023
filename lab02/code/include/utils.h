@@ -45,7 +45,6 @@ typedef struct Grid_Component
 typedef struct Costs
 {
     int g;
-    int h;
     int f;
 } Costs;
 

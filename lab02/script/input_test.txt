@@ -1,0 +1,12 @@
+5882
+6991
+7357
+14897
+# test_int
+1.7059 11931.1888 test_int
+1.7312 12208.3275 test_int2
+1.6739 12185.1794 test_int3
+# test_double
+1.0001 6801.3410 test_double
+0.9560 6700.6181 test_double2
+0.9607 6477.5229 test_double3

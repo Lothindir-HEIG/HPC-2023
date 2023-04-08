@@ -77,6 +77,7 @@ int main(int argc, char **argv)
     if (type_a_star)
     {
         LIKWID_MARKER_REGISTER("a_star_struct");
+        LIKWID_MARKER_REGISTER("check_neighbours");
 
         printf("Generating struct\n");
         head = init_grid_struct(rows_map, cols_map, DEBUG, src, dst, input_ext);
@@ -106,6 +107,7 @@ int main(int argc, char **argv)
     else
     {
         LIKWID_MARKER_REGISTER("a_star_tab");
+        // LIKWID_MARKER_REGISTER("remove_and_shift");
 
         printf("Generating grid\n");
         grid = init_grid_tab(rows_map, cols_map, DEBUG, src, dst, input_ext);

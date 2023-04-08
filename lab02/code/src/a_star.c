@@ -1,5 +1,6 @@
 #include "a_star.h"
 #include <wchar.h>
+#include <likwid-marker.h>
 
 int compute_manhattan_distance(Position *src, Position *dst);
 void remove_element_and_shift(Node **list, int index, int *list_size);
@@ -119,11 +120,12 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, void *path)
 
             return PATH_FOUND;
         }
-
+        LIKWID_MARKER_START("check_neighbours");
         check_neighbour(current->node, GRID_DIRECTION_RIGHT, &open_list, &closed_list, grid);
         check_neighbour(current->node, GRID_DIRECTION_LEFT, &open_list, &closed_list, grid);
         check_neighbour(current->node, GRID_DIRECTION_UP, &open_list, &closed_list, grid);
         check_neighbour(current->node, GRID_DIRECTION_DOWN, &open_list, &closed_list, grid);
+        LIKWID_MARKER_STOP("check_neighbours");
     }
 
     if (DEBUG)
@@ -172,6 +174,23 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
     Node **open_list = calloc(grid->rows * grid->cols, sizeof(Node *));
     Node **closed_list = calloc(grid->rows * grid->cols, sizeof(Node *));
 
+    char **open_list_map = calloc(grid->rows, sizeof(char *));
+    char **closed_list_map = calloc(grid->rows, sizeof(char *));
+
+    int **h_costs = malloc(grid->rows * sizeof(int *));
+
+    for (int i = 0; i < grid->rows; i++)
+    {
+        open_list_map[i] = calloc(grid->cols, sizeof(char));
+        closed_list_map[i] = calloc(grid->cols, sizeof(char));
+
+        h_costs[i] = malloc(grid->cols * sizeof(int));
+        for (int j = 0; j < grid->cols; j++)
+        {
+            h_costs[i][j] = abs(grid->dst->x - i) + abs(grid->dst->y - j);
+        }
+    }
+
     int open_list_index = 0;
     int closed_list_index = 0;
 
@@ -181,6 +200,7 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
     start->parent = NULL;
 
     open_list[open_list_index++] = start;
+    open_list_map[start->pos.y][start->pos.x] = 1;
 
     while (open_list_index > 0)
     {
@@ -195,9 +215,13 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
                 current_index = i;
             }
         }
-
+        // LIKWID_MARKER_START("remove_and_shift");
         remove_element_and_shift(open_list, current_index, &open_list_index);
+        // LIKWID_MARKER_STOP("remove_and_shift");
+        open_list_map[current->pos.y][current->pos.x] = 0;
+
         closed_list[closed_list_index++] = current;
+        closed_list_map[current->pos.y][current->pos.x] = 1;
 
         if (current->pos.x == grid->dst->x && current->pos.y == grid->dst->y)
         {
@@ -225,6 +249,18 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
                 free(closed_list[i]);
             free(closed_list);
 
+            for (int i = 0; i < grid->rows; i++)
+                free(h_costs[i]);
+            free(h_costs);
+
+            for (int i = 0; i < grid->rows; i++)
+            {
+                free(open_list_map[i]);
+                free(closed_list_map[i]);
+            }
+            free(open_list_map);
+            free(closed_list_map);
+
             return PATH_FOUND;
         }
 
@@ -241,18 +277,18 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
                 if (grid->data.grid[y][x] == 1)
                     continue;
 
-                if (is_in_list(closed_list, closed_list_index, x, y))
+                if (closed_list_map[y][x] == 1) // already in closed list
                     continue;
 
                 int weight = (abs(i) + abs(j) == 2) ? 14 : 10;
                 Position neighbor_position = {current->pos.x + j, current->pos.y + i};
                 int g = current->costs.g + weight;
-                int h = compute_manhattan_distance(&(neighbor_position), grid->dst);
-                int f = g + h;
+                int f = g + h_costs[neighbor_position.y][neighbor_position.x];
 
                 Node *neighbor = 0;
-                if ((neighbor = is_in_list(open_list, open_list_index, x, y)))
+                if (open_list_map[y][x] == 1)
                 {
+                    neighbor = is_in_list(open_list, open_list_index, x, y);
                     if (g < neighbor->costs.g)
                     {
                         neighbor->parent = current;
@@ -267,9 +303,9 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
                     new_neighbor->pos.y = y;
                     new_neighbor->parent = current;
                     new_neighbor->costs.g = g;
-                    new_neighbor->costs.h = h;
                     new_neighbor->costs.f = f;
                     open_list[open_list_index++] = new_neighbor;
+                    open_list_map[y][x] = 1;
                 }
             }
         }
@@ -288,6 +324,18 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, void *path)
     for (int i = 0; i < closed_list_index; i++)
         free(closed_list[i]);
     free(closed_list);
+
+    for (int i = 0; i < grid->rows; i++)
+        free(h_costs[i]);
+    free(h_costs);
+
+    for (int i = 0; i < grid->rows; i++)
+    {
+        free(open_list_map[i]);
+        free(closed_list_map[i]);
+    }
+    free(open_list_map);
+    free(closed_list_map);
 
     return NO_PATH_FOUND;
 }
@@ -377,7 +425,6 @@ void check_neighbour(Grid_Node *current, int direction, LinkedNode **open_list_h
     new_node->pos.x = current->pos.x + j;
     new_node->pos.y = current->pos.y + i;
     new_node->costs.g = g;
-    new_node->costs.h = h;
     new_node->costs.f = f;
 
     LinkedNode *new_linked_node = malloc(sizeof(LinkedNode));
