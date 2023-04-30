@@ -2,7 +2,7 @@
 title: "Laboratoire 3 : Optimisations de compilation"
 subtitle: "High Performance Coding - 2023"
 author: "Francesco Monti"
-date: 8.04.2023
+date: 30.04.2023
 toc: false
 ...
 
@@ -61,13 +61,14 @@ Une autre possibilité qu'offre le déroulement de boucle est celui de permettre
 Lien sur Compile Explorer : **[Loops Unrolling](https://godbolt.org/z/5EYWTEfM1)**
 
 
-\pagebreak
 # Partie 2 - Optimisations de l'algorithme
 Maintenant nous pouvons essayer d'optimiser notre code `A*` en utilisant les optimisations de l'algorithme que nous avons vu en cours. Avant de regarder ce que le compilateur va faire, on va essayer de parcourir le code et de voir ce qu'on peut optimiser.
 
 ## Inlining de fonctions
 ### MinHeap
-Pour rendre le code plus lisible et plus réutilisable, certaines fonctions ont été créées alors qu'elle ne contiennent que peut d'instruction. Ce serait intéressant d'*inline* ces fonctions pour réduire l'overhead et optimiser le programme. Une telle fonction est `swap_nodes(MinHeap, int)` dans *min_heap.c*, une implémentation de tas pour stocker les noeuds "ouverts". Cette fonction `swap_nodes` va simplement échanger deux noeuds du tas, et elle est appellée dans 4 autres fonctions. Une première possibilité serait de remplacer manuellement toutes les occurences de `swap_nodes` avec le corps de la fonction. C'est une manière efficace d'optimiser mais pas très élégante. Et la maintenance du code devient plus compliquée. Une autre manière est de demande au compilateur de nous *inline* la fonction lui-même et rajoutant le mot-clé `inline` devant la signature de `swap_nodes`. On peut voir les différentes manières dans [ce snippet](https://godbolt.org/z/PvhW151Eb) sur *Compile Explorer*.
+Lien sur Compile Explorer : **[MinHeap Inlining](https://godbolt.org/z/PvhW151Eb)**
+
+Pour rendre le code plus lisible et plus réutilisable, certaines fonctions ont été créées alors qu'elle ne contiennent que peut d'instruction. Ce serait intéressant d'*inline* ces fonctions pour réduire l'overhead et optimiser le programme. Une telle fonction est `swap_nodes(MinHeap, int)` dans *min_heap.c*, une implémentation de tas pour stocker les noeuds "ouverts". Cette fonction `swap_nodes` va simplement échanger deux noeuds du tas, et elle est appellée dans 4 autres fonctions. Une première possibilité serait de remplacer manuellement toutes les occurences de `swap_nodes` avec le corps de la fonction. C'est une manière efficace d'optimiser mais pas très élégante. Et la maintenance du code devient plus compliquée. Une autre manière est de demande au compilateur de nous *inline* la fonction lui-même et rajoutant le mot-clé `inline` devant la signature de `swap_nodes`.
 
 Dans ce snippet on peut voir l'implémentation de `swap_nodes(MinHeap, int)` aux lignes 19-24 de la source, et leur code assembleur aux lignes 1-10 de l'assembleur. Pour forcer la compilation de `swap_nodes` individuellement, on a ajouté
 
@@ -84,7 +85,9 @@ Dans l'implémentation de l'algorithme principal, la fonction `reconstruct_path(
 
 ## Loop Unrolling
 ### Tab
-Une optimization possible qui pourrait également permettre d'ultérieures optimisations ou mise en parallèle de l'algorithme serait le déroulement de boucle. Dans notre cas on pourrait dérouler la boucle qui va checker les voisins d'un noeud et les traiter. Dans la méthode *tab* de résolution, on considère les 8 voisins d'un noeud, et on fait une double boucle pour les traiter. On pourrait dérouler cette boucle pour éviter les sauts et les comparaisons à chaque itération. Pour commencer on peut la dérouler une fois, et ne faire plus qu'une seule boucle `for` et dans celle-ci mettre 3 fois la fonction `check_neighbour()`. On peut voir le résultat dans [ce snippet](https://godbolt.org/z/57YTPY71e) sur *Compile Explorer*.
+Lien sur Compile Explorer : **[Loops Unrolling - *tab*](https://godbolt.org/z/57YTPY71e)**
+
+Une optimization possible qui pourrait également permettre d'ultérieures optimisations ou mise en parallèle de l'algorithme serait le déroulement de boucle. Dans notre cas on pourrait dérouler la boucle qui va checker les voisins d'un noeud et les traiter. Dans la méthode *tab* de résolution, on considère les 8 voisins d'un noeud, et on fait une double boucle pour les traiter. On pourrait dérouler cette boucle pour éviter les sauts et les comparaisons à chaque itération. Pour commencer on peut la dérouler une fois, et ne faire plus qu'une seule boucle `for` et dans celle-ci mettre 3 fois la fonction `check_neighbour()`.
 
 Les lignes 1-106 de l'assembleur sont la compilation de la boucle actuelle (tronquée pour plus de lisibilité). Ensuite les lignes 107-194 sont la compilation de la méthode qui encapsule le traitement d'un voisin et les lignes 195-224 sont la version optimisée par le compilateur. La version manuelle vient par la suite et on peut voir qu'elle est tout de suite plus longue, mais on évite également une série de comparaisons et de jumps. On peut aller plus loin et pousser le déroulement au bout en éliminant la deuxième boucle `for` et en spécifiant tous les voisins directement. Dans notre cas la différence n'est pas très grande, mais on peut imaginer que pour un plus grand nombre de voisins, le gain de performance serait plus important. Il est intéressant de remarque que *GCC* même avec l'option *-funroll-loops* ne veut pas le faire.
 
@@ -108,3 +111,21 @@ check_neighbours_struct(current, /* ... */, 0, 1, current_node->right);
 ```
 
 On peut voir que le code est plus verbeux et moins flexible, on doit faire attention à ne pas se tromper en mettant les offsets et en passant les arguments. Mais grâce à ça *GCC* va même décider d'*inline* les appels de la fonction, ce qui enlève le désavantage de devoir passer par la pile.
+
+## Optimisation du calcul de la distance
+### Distance de Manhattan
+Lien sur Compile Explorer : **[Optimisation Manattan](https://godbolt.org/z/1WshsaGjG)**
+
+Pour calculer la distance dans la méthode *struct* on utilise la distance de Manhattan. Celle-ci fait appel à la fonction `abs()` à deux reprises, ce qui n'est pas très optimal. On pourrait remplacer l'appel à `abs()` par une opération arithmétique. On peut voir l'utilisation de *bithacks* pour la version optimisée manuellement, typiquement l'utilisation de `(x ^ (x >> 31)) - (x >> 31)
+` pour calculer la valeur absolue d'un entier signé. On fait également un *Code Motion* pour déplacer le calcul de la valeur absolue de `x` en dehors de la deuxième boucle, comme elle ne va pas changer. Le code compilé va prendre légèrement plus de place que l'optimisation manuelle mais présente l'avantage de ne pas faire de comparaisons et de sauts (typiquement l'instruction `cmovs` dans le calcul de la valeur absolue).
+
+### Distance euclidienne
+Lien sur Compile Explorer : **[Optimisation Euclide](https://godbolt.org/z/Er1sTsKrx)**
+
+Dans la méthode *tab* on utilise la distance euclidienne comme métrique. Celle-ci est déjà un peu optimisée car on a supprimé l'étape de la racine carrée, qui est très couteuse. On peut encore essayer de l'optimiser comme présenté dans [ce snippet](https://godbolt.org/z/Er1sTsKrx). On pousse ici un peu à l'extrême l'optimisation et la lecture du code commence à en souffir. On va ici faire du *Code Motion*, et du *Loop Unrolling*, dans le but d'utiliser des instructions **SIMD** pour optimiser les calculs. C'est pour ça que l'on va dérouler la boucle une fois, pour avoir 4 calculs à la suite, et on va utiliser des registres **SSE** pour faire les calculs. On peut voir que le code compilé est bien plus long que la version manuelle et bien moins lisible, mais on a un potentiel gain de performances non négligeable.
+
+Dans le code du labo, les variables contenant le nombre de lignes et de colonnes ont été stockées dans des variables locales pour éviter les accès mémoire inutiles.
+
+
+# Conclusion
+On peut voir au cours des ces exemples et essais d'optimisation que très souvent le compilateur est plus malin et informé que nous et prend déjà les bonnes décisions. Par contre il faut connaître les optimisations possibles afin d'utiliser les bonnes options du compilateur. Le compilateur est également plus à même de faire des optimisations globales, comme par exemple l'*inlining* de fonctions. Il est également intéressant de voir que le compilateur ne veut pas toujours faire les optimisations que l'on veut, comme par exemple le déroulement de boucle. Il faut donc faire attention à ne pas trop optimiser le code, car on peut se retrouver avec un code plus long et plus lent. Il faut aussi faire attention à ne pas sacrifier la lisibilité du code pour des optimisations qui ne sont pas forcément nécessaires.

@@ -1,5 +1,5 @@
 CC=gcc
-OPT_FLAGS= -fopt-info -flto -fwhole-program -funroll-loops -finline-functions
+OPT_FLAGS= -fopt-info -flto -fwhole-program -funroll-loops -finline-functions -march=native
 CFLAGS= -O2 $(OPT_FLAGS) -DLIKWID_PERFMON -std=c11 -Wall -Wextra -pedantic -g -I../include -L /usr/local/lib -I /usr/local/include
 DEBUGFLAGS= -std=c11 -Wall -Wextra -pedantic -g -I../include
 LDFLAGS= -llikwid

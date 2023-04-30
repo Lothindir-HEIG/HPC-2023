@@ -10,7 +10,6 @@
 void reconstruct_path(Grid *grid, Position **parent_set, Position **path);
 inline void check_neighbour_tab(Grid *grid, MinHeapNode current, MinHeap *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j);
 inline void check_neighbours_struct(MinHeapNode current, MinHeap *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j, Grid_Component *neighbour);
-void check_neighbours(MinHeapNode current, MinHeap *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set);
 
 Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
 {
@@ -28,12 +27,15 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
         return ERROR;
     }
 
-    for (int i = 0; i < grid->rows; i++)
+    int rows = grid->rows;
+    int cols = grid->cols;
+
+    for (int i = 0; i < rows; i++)
     {
-        h_costs[i] = malloc(grid->cols * sizeof(int));
-        parent_set[i] = malloc(grid->cols * sizeof(Position));
-        closed_map[i] = calloc(grid->cols, sizeof(bool));
-        open_map[i] = calloc(grid->cols, sizeof(bool));
+        h_costs[i] = malloc(cols * sizeof(int));
+        parent_set[i] = malloc(cols * sizeof(Position));
+        closed_map[i] = calloc(cols, sizeof(bool));
+        open_map[i] = calloc(cols, sizeof(bool));
 
         if (!h_costs[i] || !parent_set[i] || !closed_map[i] || !open_map[i])
         {
@@ -41,9 +43,12 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
             return ERROR;
         }
 
-        for (int j = 0; j < grid->rows; j++)
+        /* Bithack to compute the absolute value */
+        int dx = ((i - end.x) ^ ((i - end.x) >> 31)) - ((i - end.x) >> 31);
+        for (int j = 0; j < cols; j++)
         {
-            h_costs[i][j] = (abs(end.x - i) + abs(end.y - j)) * 10;
+            int dy = ((j - end.y) ^ ((j - end.y) >> 31)) - ((j - end.y) >> 31);
+            h_costs[i][j] = (dx + dy) * 10;
         }
     }
 
@@ -115,12 +120,15 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, Position **path)
         return ERROR;
     }
 
-    for (int i = 0; i < grid->rows; i++)
+    int rows = grid->rows;
+    int cols = grid->cols;
+
+    for (int i = 0; i < rows; i++)
     {
-        h_costs[i] = malloc(grid->cols * sizeof(int));
-        parent_set[i] = malloc(grid->cols * sizeof(Position));
-        closed_map[i] = calloc(grid->cols, sizeof(bool));
-        open_map[i] = calloc(grid->cols, sizeof(bool));
+        h_costs[i] = malloc(cols * sizeof(int));
+        parent_set[i] = malloc(cols * sizeof(Position));
+        closed_map[i] = calloc(cols, sizeof(bool));
+        open_map[i] = calloc(cols, sizeof(bool));
 
         if (!h_costs[i] || !parent_set[i] || !closed_map[i] || !open_map[i])
         {
@@ -128,9 +136,23 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, Position **path)
             return ERROR;
         }
 
-        for (int j = 0; j < grid->rows; j++)
+        int dx = (i - end.x) * (i - end.x);
+        for (int j = 0; j < cols - 3; j += 4)
         {
-            h_costs[i][j] = ((i - end.x) * (i - end.x) + (j - end.y) * (j - end.y)) * 10;
+            int dy = j - end.y;
+            int dy1 = dy + 1;
+            int dy2 = dy + 2;
+            int dy3 = dy + 3;
+            h_costs[i][j] = (dx + dy * dy) * 10;
+            h_costs[i][j + 1] = (dx + dy1 * dy1) * 10;
+            h_costs[i][j + 2] = (dx + dy2 * dy2) * 10;
+            h_costs[i][j + 3] = (dx + dy3 * dy3) * 10;
+        }
+        /* Si cols n'est pas un multiple de 4 */
+        for (int j = cols & ~3; j < cols; j++)
+        {
+            int dy = j - end.y;
+            h_costs[i][j] = (dx + dy * dy) * 10;
         }
     }
 

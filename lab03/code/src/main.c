@@ -24,7 +24,7 @@
 #define PARAM_A_STAR_TAB "tab"
 #define PARAM_A_STAR_STRUCT "struct"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int main(int argc, char **argv)
 {
