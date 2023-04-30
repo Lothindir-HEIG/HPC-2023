@@ -1,0 +1,54 @@
+#!/bin/bash
+
+LOOPS=1
+GREP_STRING="M*/s"
+
+while getopts :t:m:i:g:h:f:ao flag; do
+case "$flag" in
+t) TEST=$OPTARG ;;
+m) MEMORY=$OPTARG ;;
+i) LOOPS=$OPTARG ;;
+g) GREP_STRING=$OPTARG ;;
+f) FILENAME=$OPTARG ;;
+h) HOSTNAME=$OPTARG ;;
+a) APPEND=1 ;;
+o) OUTPUT=1 ;;
+*)
+    printf "Usage: $0 single -t <TEST> -m <MEMORY> -g <GREP_STRING> -h <HOSTNAME> [-i <LOOPS>] [-f FILENAME] [-a]"
+    exit 1
+    ;;
+esac
+done
+
+bench_with_regex(){
+    likwid-bench -t $TEST -W N:$MEMORY:1 2>/dev/null | grep "$GREP_STRING"
+}
+
+if [ -z $FILENAME ]; then
+    FILE_OUTPUT=$HOSTNAME.$TEST.log
+else
+    FILE_OUTPUT=$HOSTNAME.$FILENAME.log
+fi
+
+if [ -z $APPEND  ]; then
+    > $FILE_OUTPUT
+fi
+
+printf "# %s - %s\n" $TEST $MEMORY >> $FILE_OUTPUT
+
+TOTAL=0
+for i in $(seq 1 $LOOPS); do
+    printf "\rBench %s: %s of %s - Benchmarking..." $TEST $i $LOOPS 1>&2
+    VALUE="$(bench_with_regex)"
+    printf "\rBench %s: %s of %s - Writing...     " $TEST $i $LOOPS 1>&2
+    printf "$VALUE\n" >> $FILE_OUTPUT
+    let TOTAL=$TOTAL+$(grep -E '[0-9]{3,}' -o <<< $VALUE)
+done
+printf "\n" 1>&2
+
+let AVERAGE=$TOTAL/$LOOPS
+printf "Average:\t %s\n\n" $AVERAGE >> $FILE_OUTPUT
+
+if [ $APPEND ]; then
+    printf "$AVERAGE\n"
+fi

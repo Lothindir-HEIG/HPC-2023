@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# This script is used to bench an executable with likwid-perfctr
+
+# Usage: ./bench.sh <executable>
+SIZES=(100 200 250 300 500 1000 2000 2500 5000)
+MODES=(tab struct)
+
+bench_executable(){
+    likwid-perfctr -C E:N:1:1:1 -g HPC -m -M 0 ./$1 $m $s $s input$s
+}
+
+echo "Writing to bench_$1.log"
+echo "Benching $1" > bench_$1.log
+
+for m in ${MODES[@]}; do
+    echo "# $m (${SIZES[0]} - ${SIZES[-1]})" >> bench_$1.log
+    first=true
+    for s in ${SIZES[@]}; do
+        printf "Running $1 with $m and $s..."
+        result=$(bench_executable $1)
+        label=""
+        if [ $first = true ]; then
+            label=$s
+            first=false
+        fi
+        echo $(grep -E "\[MOPS/s\]|\(ALL\)" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{4}' -o) $label >> bench_$1.log
+        echo " done in $(grep -E "RDTSC Runtime" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{,6}' -o) s"
+    done
+done
