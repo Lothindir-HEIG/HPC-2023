@@ -1,0 +1,3 @@
+[submodule "lab04/docs"]
+	path = lab04/docs
+	url = https://github.com/Lothindir/pandoc-heig.git
