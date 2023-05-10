@@ -1,7 +1,8 @@
 CC=gcc
-CFLAGS= -O3 -std=c11 -Wall -Wextra -pedantic -g -I../include
+LIKWIDFLAGS= -DLIKWID_PERFMON -I/usr/local/include -L/usr/local/lib
+CFLAGS= -O3 -msse3 -std=c11 -Wall -Wextra -pedantic -g -I../include $(LIKWIDFLAGS)
 DEBUGFLAGS= -std=c11 -Wall -Wextra -pedantic -g -I../include
-LDFLAGS= -lm
+LDFLAGS= -lm -llikwid
 
 SRC_C=$(wildcard *.c)
 OBJC=$(SRC_C:%.c=%.o)

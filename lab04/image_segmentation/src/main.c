@@ -4,7 +4,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-pixel *load_image(char *filename, int *width, int *height, unsigned char header[54]) {
+#ifdef LIKWID_PERFMON
+#include <likwid-marker.h>
+#else
+#define LIKWID_MARKER_INIT
+#define LIKWID_MARKER_REGISTER(regionTag)
+#define LIKWID_MARKER_START(regionTag)
+#define LIKWID_MARKER_STOP(regionTag)
+#define LIKWID_MARKER_CLOSE
+#endif
+
+pixel *load_image(char *filename, int *width, int *height, unsigned char header[54])
+{
     FILE *f = fopen(filename, "rb");
     if (!f)
     {
@@ -13,7 +24,8 @@ pixel *load_image(char *filename, int *width, int *height, unsigned char header[
     }
 
     int result = fread(header, sizeof(char), 54, f);
-    if (!result) {
+    if (!result)
+    {
         printf("Erreur: Header of file %s in not readable.\n", filename);
         return NULL;
     }
@@ -24,14 +36,17 @@ pixel *load_image(char *filename, int *width, int *height, unsigned char header[
     int size = *width * *height;
 
     pixel *pixels = malloc(size * sizeof(pixel));
-    if (!pixels) {
+    if (!pixels)
+    {
         printf("Erreur: Not enough memory available for loading image.\n");
         return NULL;
     }
 
-    for (int i = 0; i < size; ++i) {
+    for (int i = 0; i < size; ++i)
+    {
         unsigned char buffer[3];
-        if (!fread(buffer, sizeof(unsigned char), 3, f)) {
+        if (!fread(buffer, sizeof(unsigned char), 3, f))
+        {
             printf("Erreur: Pixels are not readable.\n");
             return NULL;
         }
@@ -46,9 +61,11 @@ pixel *load_image(char *filename, int *width, int *height, unsigned char header[
     return pixels;
 }
 
-int save_image(char *filename, pixel *image, int width, int height, unsigned char header[54]) {
+int save_image(char *filename, pixel *image, int width, int height, unsigned char header[54])
+{
     FILE *file = fopen(filename, "wb");
-    if (!file) {
+    if (!file)
+    {
         printf("Erreur : File %s cannot be opened.\n", filename);
         return 1;
     }
@@ -59,8 +76,10 @@ int save_image(char *filename, pixel *image, int width, int height, unsigned cha
 
     unsigned char output[3];
 
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
+    for (int y = 0; y < height; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
             int index = y * width + x;
             output[2] = (unsigned char)image[index].r;
             output[1] = (unsigned char)image[index].g;
@@ -73,12 +92,17 @@ int save_image(char *filename, pixel *image, int width, int height, unsigned cha
     return 0;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
+    LIKWID_MARKER_INIT;
+    LIKWID_MARKER_REGISTER("kmeans");
+
     unsigned char header[54];
     int width, height;
     int nb_cluster = 0;
 
-    if (argc != 4) {
+    if (argc != 4)
+    {
         fprintf(stderr, "Usage : %s <img_src.bmp> <nb_clusters> <img_dest.bmp>\n", argv[0]);
         return 1;
     }
@@ -86,13 +110,15 @@ int main(int argc, char** argv) {
     char *src_extension = strrchr(argv[1], '.');
     char *dst_extension = strrchr(argv[3], '.');
     if ((src_extension == NULL || strcmp(src_extension, ".bmp") ||
-         dst_extension == NULL || strcmp(dst_extension, ".bmp")) != 0) {
+         dst_extension == NULL || strcmp(dst_extension, ".bmp")) != 0)
+    {
         printf("All file must be a \".bmp\"\n");
         return 1;
     }
 
     nb_cluster = atoi(argv[2]);
-    if (nb_cluster <= 0){
+    if (nb_cluster <= 0)
+    {
         printf("The number of clusters should be greater than 0\n");
         return 1;
     }
@@ -101,8 +127,10 @@ int main(int argc, char** argv) {
 
     printf("Image loaded!\n");
 
+    LIKWID_MARKER_START("kmeans");
     kmeans(image, width, height, nb_cluster);
-    
+    LIKWID_MARKER_STOP("kmeans");
+
     save_image(argv[3], image, width, height, header);
 
     printf("Image saved to %s!\n", argv[3]);
@@ -110,6 +138,8 @@ int main(int argc, char** argv) {
     free(image);
 
     printf("Programm ended successfully\n\n");
-    
+
+    LIKWID_MARKER_CLOSE;
+
     return 0;
 }

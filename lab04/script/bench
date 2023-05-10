@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# This script is used to bench an executable with likwid-perfctr
+
+# Usage: ./bench.sh <executable> <path>
+
+PATH_TO_IMAGES="../img/"
+PREFIX="sample_"
+IMAGES=("640.bmp" "640_2.bmp" "5184.bmp")
+CLUSTERS=(8 16 32 64 128)
+
+bench_executable(){
+    likwid-perfctr -C E:N:1:1:1 -g HPC -m -M 0 ./$1 $PATH_TO_IMAGES$PREFIX$i $c $c-$i
+    rm $c-$i
+}
+
+cd $2
+echo "Running in $2"
+echo "Writing to bench_$1.log"
+echo "Benching $1" > bench_$1.log
+echo ${CLUSTERS[*]} >> bench_$1.log
+
+for i in ${IMAGES[@]}; do
+    echo "# $i" >> bench_$1.log
+    first=true
+    for c in ${CLUSTERS[@]}; do
+        printf "Running $1 with $PREFIX$i and $c clusters..."
+        result=$(bench_executable $1)
+        echo $(grep -E "\[MOPS/s\]|\(ALL\)" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{4}' -o) $(grep -E "Runtime \(RDTSC\)" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{,6}' -o) >> bench_$1.log
+        echo " done in $(grep -E "Runtime \(RDTSC\)" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{,6}' -o) s"
+    done
+done
