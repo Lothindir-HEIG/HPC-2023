@@ -10,15 +10,11 @@
 // Instead of using coordinate we use the RGB value for evaluate distance.
 float distance(pixel p1, pixel p2)
 {
-    // __m128 diff = _mm_set_ps(p1.r - p2.r, p1.g - p2.g, p1.b - p2.b, 0);
-    // __m128 dist = _mm_mul_ps(diff, diff);
-    // dist = _mm_hadd_ps(dist, dist);
-    // dist = _mm_hadd_ps(dist, dist);
-    // return sqrt(_mm_cvtss_f32(dist));
+
     float r_diff = p1.r - p2.r;
     float g_diff = p1.g - p2.g;
     float b_diff = p1.b - p2.b;
-    return sqrt(r_diff * r_diff + g_diff * g_diff + b_diff * b_diff);
+    return r_diff * r_diff + g_diff * g_diff + b_diff * b_diff;
 }
 
 void kmeans_pp(pixel *image, int width, int height, int num_clusters, pixel *centers)
@@ -42,7 +38,6 @@ void kmeans_pp(pixel *image, int width, int height, int num_clusters, pixel *cen
             float dist3 = distance(image[i + 2], centers[0]);
             float dist4 = distance(image[i + 3], centers[0]);
             v_dist = _mm_set_ps(dist4, dist3, dist2, dist1);
-            _mm_mul_ps(v_dist, v_dist);
             _mm_store_ps(&distances[i], v_dist);
         }
         for (int i = total_pixels_aligned; i < total_pixels; i++)
@@ -88,7 +83,6 @@ void kmeans_pp(pixel *image, int width, int height, int num_clusters, pixel *cen
         for (int j = 0; j < total_pixels; j++)
         {
             float dist = distance(image[j], centers[i]);
-            dist *= dist;
             if (dist < distances[j])
             {
                 distances[j] = dist;
@@ -123,7 +117,7 @@ void kmeans(pixel *image, int width, int height, int num_clusters)
             // Compute the distance between the pixel and each cluster center.
             for (int c = 0; c < num_clusters; c++)
             {
-                float dist = distance(image[y * width + x], centers[c]);
+                float dist = sqrt(distance(image[y * width + x], centers[c]));
 
                 if (dist < min_dist)
                 {
@@ -143,15 +137,13 @@ void kmeans(pixel *image, int width, int height, int num_clusters)
     // Compute the sum of the pixel values for each cluster.
     for (int y = 0; y < height; y++)
     {
+        __m128i v_cluster_sum;
+        for (int x = 0; x < width; x++)
         {
-            __m128i v_cluster;
-            for (int x = 0; x < width; x++)
-            {
-                int cluster = assignments[y * width + x];
-                v_cluster = _mm_load_si128((__m128i *)&cluster_data[cluster]);
-                v_cluster = _mm_add_epi32(v_cluster, _mm_set_epi32(image[y * width + x].b, image[y * width + x].g, image[y * width + x].r, 1));
-                _mm_store_si128((__m128i *)&cluster_data[cluster], v_cluster);
-            }
+            int cluster = assignments[y * width + x];
+            v_cluster_sum = _mm_load_si128((__m128i *)&cluster_data[cluster]);
+            v_cluster_sum = _mm_add_epi32(v_cluster_sum, _mm_set_epi32(image[y * width + x].b, image[y * width + x].g, image[y * width + x].r, 1));
+            _mm_store_si128((__m128i *)&cluster_data[cluster], v_cluster_sum);
         }
     }
 

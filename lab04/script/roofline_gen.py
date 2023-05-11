@@ -17,6 +17,8 @@ if __name__ == '__main__':
     parser.add_argument('--uops', action='store_true', help='Show uOPS in graph')
     parser.add_argument('--ilp', type=int, help='ILP factor (default 2)', default=2)
     parser.add_argument('--times', action='store_true', help='Generate time plot')
+    parser.add_argument('-l', '--linestyle-split', type=int, help='Threshold to split line styles (default 0)', default=0)
+    parser.add_argument('-n', '--number', type=int, help='Number of segments to plot (default all)', default=-1)
     parser_show.add_argument('--no-ops', action='store_true', help='Do not show OPS in graph')
     parser_show.add_argument('--no-flops', action='store_true', help='Do not show FLOPS in graph')
     args = parser.parse_args()
@@ -44,6 +46,8 @@ if __name__ == '__main__':
                 if line.strip() == '':
                     continue
                 if line.startswith('#'):
+                    if args.number > 0 and len(segments) - 1 >= args.number:
+                        break
                     segments.append(len(points))
                     segments_labels.append(line.strip()[1:])
                     continue
@@ -87,7 +91,7 @@ if __name__ == '__main__':
                     plt.annotate(label, (point[0], point[1]), (point[0], point[1] + 250))
                 p_x.append(point[0])
                 p_y.append(point[1])
-            if s < 2:
+            if s < args.linestyle_split:
                 plt.plot(p_x, p_y, color=c, zorder=0, label=segments_labels[s], linestyle='--')
             else:
                 plt.plot(p_x, p_y, color=c, zorder=0, label=segments_labels[s])
@@ -120,7 +124,7 @@ if __name__ == '__main__':
                 plt.plot(time_labels[i], float(point[2]), color=c, marker='o')
                 p_x.append(i)
                 p_y.append(float(point[2]))
-            if s < 2:
+            if s < args.linestyle_split:
                 plt.plot(p_x, p_y, color=c, zorder=0, label=segments_labels[s], linestyle='--')
             else:
                 plt.plot(p_x, p_y, color=c, zorder=0, label=segments_labels[s])

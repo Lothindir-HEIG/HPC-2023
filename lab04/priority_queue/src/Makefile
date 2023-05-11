@@ -1,5 +1,6 @@
 CC=gcc
-CFLAGS= -O3 -std=c11 -Wall -Wextra -pedantic -g -I../include
+LIKWIDFLAGS= -DLIKWID_PERFMON -I/usr/local/include -L/usr/local/lib
+CFLAGS= -O3 -msse3 -std=c11 -Wall -Wextra -pedantic -g -I../include
 DEBUGFLAGS= -std=c11 -Wall -Wextra -pedantic -g -I../include
 LDFLAGS= -lm
 

@@ -7,7 +7,7 @@
 PATH_TO_IMAGES="../img/"
 PREFIX="sample_"
 IMAGES=("640.bmp" "640_2.bmp" "5184.bmp")
-CLUSTERS=(8 16 32 64 128)
+CLUSTERS=(8 16 32 64 128 256 512)
 
 bench_executable(){
     likwid-perfctr -C E:N:1:1:1 -g HPC -m -M 0 ./$1 $PATH_TO_IMAGES$PREFIX$i $c $c-$i

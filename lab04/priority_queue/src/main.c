@@ -1,8 +1,6 @@
 #include "priority_queue.h"
 #include <stdlib.h>
 #include <limits.h>
-
-#include <stdlib.h>
 #include <stdio.h>
 
 #define map_size_rows 10
@@ -32,8 +30,8 @@ node_t *get_nodes_from_map(int start_x, int start_y, int end_x, int end_y);
 
 int compare_node(const void *a, const void *b)
 {
-    /* Compare nodes */
-    return 0;
+    node_t *node_a = (node_t *)a, *node_b = (node_t *)b;
+    return (node_b->fCost + node_b->hCost) - (node_a->fCost + node_a->hCost);
 }
 
 int main(int argc, char **argv)
@@ -55,6 +53,8 @@ int main(int argc, char **argv)
         printf("(%d, %d) gCost=%d hCost=%d fCost=%d walkable=%d\n",
                node->x, node->y, node->gCost, node->hCost, node->fCost, node->walkable);
     }
+
+    destroy(priority_queue);
 
     return 0;
 }
