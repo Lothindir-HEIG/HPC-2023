@@ -1,0 +1,4 @@
+*.ppm
+*perf.*
+callgrind.*
+cachegrind.*
