@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# This script is used to bench an executable
+
+# Usage: ./bench.sh <executable> <path_to_data>
+
+GREP_PATTERN="Temps de traitement"
+FILES=("huge" "big" "med" "small" "tiny")
+
+bench_executable(){
+    echo "Running $1 with $2..."
+    ./$1 $2
+    # result=$(./$1 $2)
+    # echo $(grep -E "$GREP_PATTERN" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{,6}' -o) >> bench_$1.log
+    # echo " done in $(grep -E "$GREP_PATTERN" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{,6}' -o) s"
+}
+
+echo "Writing to bench_$1.log"
+echo "Benching $1" > bench_$1.log
+
+for f in ${FILES[@]}; do
+    result=$(./$1 $2/$f.txt)
+    # echo $result
+    echo $(grep -E "$GREP_PATTERN" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{,6}' -o) >> bench_$1.log
+    echo " done in $(grep -E "$GREP_PATTERN" <<< ${result[0]} | grep -E '[0-9]{1,}.[0-9]{,6}' -o) s"
+done
