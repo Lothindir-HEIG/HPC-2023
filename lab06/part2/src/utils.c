@@ -99,7 +99,6 @@ Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, P
     char *line = malloc(cols * sizeof(char));
     for (int i = 0; i < rows; i++)
     {
-        // fscanf(fp, "%s", line);
         for (int j = 0; j < cols; j++)
         {
             char c = line[j];
@@ -260,6 +259,7 @@ void print_grid(Grid *grid, Position *path, bool **open_map, bool **closed_map, 
 
     if (closed_map && open_map)
     {
+#pragma omp parallel for shared(grid_tab, grid, open_map, closed_map)
         for (int i = 0; i < grid->rows; i++)
         {
             for (int j = 0; j < grid->cols; j++)
@@ -317,34 +317,29 @@ inline void free_list(Grid *grid, void **list)
     free(list);
 }
 
-void free_lists(Grid *grid, MinHeap *open_set, Position **parent_set, int **h_costs, bool **open_map, bool **closed_map)
+void free_lists(Grid *grid, circular_buffer_t *open_set, Position **parent_set, int **h_costs, bool **open_map, bool **closed_map)
 {
-    heap_free(open_set);
-    for (int i = 0; i < grid->rows; i++)
+#pragma omp parallel sections
     {
-        free(parent_set[i]);
+#pragma omp section
+        {
+            circular_buffer_destroy(open_set);
+        }
+#pragma omp section
+        {
+            free_list(grid, (void **)parent_set);
+        }
+#pragma omp section
+        {
+            free_list(grid, (void **)h_costs);
+        }
+#pragma omp section
+        {
+            free_list(grid, (void **)open_map);
+        }
+#pragma omp section
+        {
+            free_list(grid, (void **)closed_map);
+        }
     }
-    for (int i = 0; i < grid->rows; i++)
-    {
-        free(h_costs[i]);
-    }
-    for (int i = 0; i < grid->rows; i++)
-    {
-        free(open_map[i]);
-    }
-    for (int i = 0; i < grid->rows; i++)
-    {
-        free(closed_map[i]);
-    }
-    // for (int i = 0; i < grid->rows; i++)
-    // {
-    //     free(parent_set[i]);
-    //     free(h_costs[i]);
-    //     free(open_map[i]);
-    //     free(closed_map[i]);
-    // }
-    free(parent_set);
-    free(h_costs);
-    free(open_map);
-    free(closed_map);
 }

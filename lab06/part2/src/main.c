@@ -26,7 +26,7 @@
 
 #define DEBUG 0
 
-#define VERSION "4.1"
+#define VERSION "4.2 - OMP"
 
 int main(int argc, char **argv)
 {

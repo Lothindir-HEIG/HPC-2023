@@ -1,9 +1,11 @@
 #include <wchar.h>
 #include <stdbool.h>
 #include <smmintrin.h>
+#include <omp.h>
 
 #include "a_star.h"
 #include "min_heap.h"
+#include "circ_buffer.h"
 
 #ifdef LIKWID_PERFMON
 #include <likwid-marker.h>
@@ -19,13 +21,13 @@
 #define GRID_WALL 1
 
 void reconstruct_path(Grid *grid, Position **parent_set, Position **path);
-inline void check_neighbour_tab(Grid *grid, MinHeapNode current, MinHeap *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j);
-inline void check_neighbours_struct(MinHeapNode current, MinHeap *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j, Grid_Component *neighbour);
+inline void check_neighbour_tab(Grid *grid, cb_node_t current, circular_buffer_t *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j);
+inline void check_neighbours_struct(cb_node_t current, circular_buffer_t *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j, Grid_Component *neighbour);
 
 Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
 {
     /* Variables initialization */
-    MinHeap *open_set = heap_create(grid->rows * grid->cols);
+    circular_buffer_t *open_set = circular_buffer_create(grid->rows * grid->cols);
     Position **parent_set = malloc(grid->rows * sizeof(Position *));
     int **h_costs = malloc(grid->rows * sizeof(int *));
     bool **closed_map = calloc(grid->rows, sizeof(bool *));
@@ -56,6 +58,7 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
 
         /* Bithack to compute the absolute value */
         int dx = ((i - end.x) ^ ((i - end.x) >> 31)) - ((i - end.x) >> 31);
+#pragma omp parallel for shared(dx, cols) reduction(+ : h_costs[i][ : cols])
         for (int j = 0; j < cols; j++)
         {
             int dy = ((j - end.y) ^ ((j - end.y) >> 31)) - ((j - end.y) >> 31);
@@ -70,8 +73,9 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
     for (int i = 0; i < grid->src->y; i++)
         start_node = start_node->right;
 
-    MinHeapNode start = {grid->src->x, grid->src->y, 0, h_costs[grid->src->x][grid->src->y], start_node};
-    heap_insert(open_set, start);
+    cb_node_t start = {grid->src->x, grid->src->y, 0, h_costs[grid->src->x][grid->src->y], start_node};
+    circular_buffer_insert(open_set, start);
+    // heap_insert(open_set, start);
     open_map[grid->src->x][grid->src->y] = true;
 
     LIKWID_MARKER_START("a_star_struct");
@@ -79,7 +83,7 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
     /* Main loop */
     while (open_set->size > 0)
     {
-        MinHeapNode current = heap_pop(open_set);
+        cb_node_t current = circular_buffer_pop(open_set);
         open_map[current.x][current.y] = false;
 
         /* Path found */
@@ -100,11 +104,19 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
         closed_map[current.x][current.y] = true;
 
         Grid_Component *current_node = (Grid_Component *)current.data;
-        check_neighbours_struct(current, open_set, open_map, closed_map, h_costs, parent_set, -1, 0, current_node->up);
-        check_neighbours_struct(current, open_set, open_map, closed_map, h_costs, parent_set, 1, 0, current_node->down);
-        check_neighbours_struct(current, open_set, open_map, closed_map, h_costs, parent_set, 0, -1, current_node->left);
-        check_neighbours_struct(current, open_set, open_map, closed_map, h_costs, parent_set, 0, 1, current_node->right);
-        // check_neighbours(current, open_set, open_map, closed_map, h_costs, parent_set);
+#pragma omp parallel sections shared(current, open_set, open_map, closed_map, h_costs, parent_set, current_node)
+        {
+#pragma omp section
+            check_neighbours_struct(current, open_set, open_map, closed_map, h_costs, parent_set, -1, 0, current_node->up);
+#pragma omp section
+            check_neighbours_struct(current, open_set, open_map, closed_map, h_costs, parent_set, 1, 0, current_node->down);
+#pragma omp section
+            check_neighbours_struct(current, open_set, open_map, closed_map, h_costs, parent_set, 0, -1, current_node->left);
+#pragma omp section
+            check_neighbours_struct(current, open_set, open_map, closed_map, h_costs, parent_set, 0, 1, current_node->right);
+        }
+#pragma omp single
+        insertion_sort_circular_buffer(open_set);
     }
 
     /* Path not found */
@@ -118,7 +130,8 @@ Path_error compute_path_struct(Grid *grid, int DEBUG, Position **path)
 Path_error compute_path_tab(Grid *grid, int DEBUG, Position **path)
 {
     /* Variables initialization */
-    MinHeap *open_set = heap_create(grid->rows * grid->cols);
+    // MinHeap *open_set = heap_create(grid->rows * grid->cols);
+    circular_buffer_t *open_set = circular_buffer_create(grid->rows * grid->cols);
     Position **parent_set = malloc(grid->rows * sizeof(Position *));
     int **h_costs = malloc(grid->rows * sizeof(int *));
     bool **closed_map = calloc(grid->rows, sizeof(bool *));
@@ -156,6 +169,7 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, Position **path)
 
         __m128i dx_vec = _mm_set1_epi32(dx);
         __m128i dy_val;
+#pragma omp parallel for shared(h_costs, i, dx_vec, dy_vec, mul_factor, end_y, cols)
         for (int j = 0; j < cols - 3; j += 4)
         {
             dy_val = _mm_add_epi32(dy_vec, _mm_set1_epi32(j - end_y));
@@ -173,8 +187,9 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, Position **path)
     }
 
     /* Add start node to open set */
-    MinHeapNode start = {grid->src->x, grid->src->y, h_costs[grid->src->x][grid->src->y], 0, NULL};
-    heap_insert(open_set, start);
+    cb_node_t start = {grid->src->x, grid->src->y, h_costs[grid->src->x][grid->src->y], 0, NULL};
+    // heap_insert(open_set, start);
+    circular_buffer_insert(open_set, start);
     open_map[grid->src->x][grid->src->y] = true;
 
     LIKWID_MARKER_START("a_star_tab");
@@ -182,7 +197,8 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, Position **path)
     /* Main loop */
     while (open_set->size > 0)
     {
-        MinHeapNode current = heap_pop(open_set);
+        // MinHeapNode current = heap_pop(open_set);
+        cb_node_t current = circular_buffer_pop(open_set);
         open_map[current.x][current.y] = false;
 
         /* Path found */
@@ -202,12 +218,15 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, Position **path)
 
         closed_map[current.x][current.y] = true;
 
+#pragma omp parallel for shared(open_set, open_map, closed_map, h_costs, parent_set, current, rows, cols)
         for (int i = -1; i <= 1; i++) // rows
         {
             check_neighbour_tab(grid, current, open_set, open_map, closed_map, h_costs, parent_set, i, -1);
             check_neighbour_tab(grid, current, open_set, open_map, closed_map, h_costs, parent_set, i, 0);
             check_neighbour_tab(grid, current, open_set, open_map, closed_map, h_costs, parent_set, i, 1);
         }
+#pragma omp single
+        insertion_sort_circular_buffer(open_set);
     }
 
     /* Path not found */
@@ -218,7 +237,29 @@ Path_error compute_path_tab(Grid *grid, int DEBUG, Position **path)
     return NO_PATH_FOUND;
 }
 
-inline void check_neighbours_struct(MinHeapNode current, MinHeap *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j, Grid_Component *neighbour)
+inline void check_neighbour(circular_buffer_t *open_set, bool **open_map, Position **parent_set, cb_node_t current, int x, int y, int g_cost, int f_cost)
+{
+    if (open_map[x][y])
+    {
+        size_t neighbour_i = circular_buffer_get(open_set, x, y);
+        if (open_set->buffer[neighbour_i].f_cost > f_cost)
+        {
+            parent_set[x][y] = (Position){current.x, current.y};
+            open_set->buffer[neighbour_i].g_cost = g_cost;
+            open_set->buffer[neighbour_i].f_cost = f_cost;
+        }
+    }
+    else
+    {
+        parent_set[x][y] = (Position){current.x, current.y};
+        cb_node_t neighbour = {x, y, g_cost, f_cost, NULL};
+#pragma omp critical
+        circular_buffer_insert(open_set, neighbour);
+        open_map[x][y] = true;
+    }
+}
+
+inline void check_neighbours_struct(cb_node_t current, circular_buffer_t *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j, Grid_Component *neighbour)
 {
     // Check if neighbour is traversable
     if (neighbour == NULL || neighbour->value == 1)
@@ -232,24 +273,25 @@ inline void check_neighbours_struct(MinHeapNode current, MinHeap *open_set, bool
 
     if (open_map[current.x + i][current.y + j])
     {
-        int index = heap_search(open_set, current.x + i, current.y + j);
-        if (open_set->data[index].f_cost > neighbour_f_cost)
+        size_t neighbour_i = circular_buffer_get(open_set, current.x + i, current.y + j);
+        if (open_set->buffer[neighbour_i].f_cost > neighbour_f_cost)
         {
             parent_set[current.x + i][current.y + j] = (Position){current.x, current.y};
-            open_set->data[index].g_cost = neighbour_g_cost;
-            heap_update(open_set, index, neighbour_f_cost);
+            open_set->buffer[neighbour_i].g_cost = neighbour_g_cost;
+            open_set->buffer[neighbour_i].f_cost = neighbour_f_cost;
         }
     }
     else
     {
-        MinHeapNode neighbour_node = {current.x + i, current.y + j, neighbour_g_cost, neighbour_f_cost, neighbour};
+        cb_node_t neighbour_node = {current.x + i, current.y + j, neighbour_g_cost, neighbour_f_cost, neighbour};
         parent_set[current.x + i][current.y + j] = (Position){current.x, current.y};
-        heap_insert(open_set, neighbour_node);
+#pragma omp critical
+        circular_buffer_insert(open_set, neighbour_node);
         open_map[current.x + i][current.y + j] = true;
     }
 }
 
-inline void check_neighbour_tab(Grid *grid, MinHeapNode current, MinHeap *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j)
+inline void check_neighbour_tab(Grid *grid, cb_node_t current, circular_buffer_t *open_set, bool **open_map, bool **closed_map, int **h_costs, Position **parent_set, int i, int j)
 {
     int neighbour_x = current.x + i;
     int neighbour_y = current.y + j;
@@ -265,23 +307,7 @@ inline void check_neighbour_tab(Grid *grid, MinHeapNode current, MinHeap *open_s
     int neighbour_g_cost = current.g_cost + weight;
     int neighbour_f_cost = neighbour_g_cost + h_costs[neighbour_x][neighbour_y];
 
-    if (open_map[neighbour_x][neighbour_y])
-    {
-        int index = heap_search(open_set, neighbour_x, neighbour_y);
-        if (open_set->data[index].f_cost > neighbour_f_cost)
-        {
-            parent_set[neighbour_x][neighbour_y] = (Position){current.x, current.y};
-            open_set->data[index].g_cost = neighbour_g_cost;
-            heap_update(open_set, index, neighbour_f_cost);
-        }
-    }
-    else
-    {
-        parent_set[neighbour_x][neighbour_y] = (Position){current.x, current.y};
-        MinHeapNode neighbour = {neighbour_x, neighbour_y, neighbour_g_cost, neighbour_f_cost, NULL};
-        heap_insert(open_set, neighbour);
-        open_map[neighbour_x][neighbour_y] = true;
-    }
+    check_neighbour(open_set, open_map, parent_set, current, neighbour_x, neighbour_y, neighbour_g_cost, neighbour_f_cost);
 }
 
 inline void reconstruct_path(Grid *grid, Position **parent_set, Position **path)

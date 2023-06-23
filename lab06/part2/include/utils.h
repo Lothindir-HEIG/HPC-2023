@@ -12,6 +12,7 @@
 #include <stdbool.h>
 
 #include "min_heap.h"
+#include "circ_buffer.h"
 
 // Couleurs pour l'affichage
 #define ANSI_COLOR_RST "\x1B[0m"
@@ -73,4 +74,4 @@ Grid_Component *init_grid_struct(int rows, int cols, int DEBUG, Position *src, P
 
 void print_grid(Grid *grid, Position *path, bool **open_map, bool **closed_list_map, bool is_struct);
 
-void free_lists(Grid *grid, MinHeap *open_set, Position **parent_set, int **h_costs, bool **open_map, bool **closed_map);
+void free_lists(Grid *grid, circular_buffer_t *open_set, Position **parent_set, int **h_costs, bool **open_map, bool **closed_map);
