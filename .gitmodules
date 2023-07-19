@@ -4,11 +4,11 @@
 [submodule "lab03/report/docs"]
 	path = lab03/report/docs
 	url = https://github.com/Lothindir/pandoc-heig.git
-[submodule "lab04/docs"]
-	path = lab04/docs
+[submodule "lab04/report/docs"]
+	path = lab04/report/docs
 	url = https://github.com/Lothindir/pandoc-heig.git
-[submodule "lab05/docs"]
-	path = lab05/docs
+[submodule "lab05/report/docs"]
+	path = lab05/report/docs
 	url = https://github.com/Lothindir/pandoc-heig.git
 [submodule "lab06/report/docs"]
 	path = lab06/report/docs
