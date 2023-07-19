@@ -1,9 +1,9 @@
 ---
-title: Profiling
-subtitle: HPC 2023
-author: Francesco Monti
-date: 29.05.2023
-...
+title: "Laboratoire 5 : Profiling"
+subtitle: "HPC 2023"
+author: "Francesco Monti"
+date: "29.05.2023"
+---
 
 # Profiling de programmes
 Le choix des deux programmes à profiler s'est porté sur le *Mandelbrot set* non interactif et la *Fast Fourier Transform (FFT)*. La compression *LZW* ne compilait pas et à donc été laissée de côté.

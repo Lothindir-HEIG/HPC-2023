@@ -4,7 +4,7 @@ subtitle: "High Performance Coding - 2023"
 author: "Francesco Monti"
 date: 30.04.2023
 toc: false
-...
+---
 
 # Partie 1 - Optimisations de compilation
 

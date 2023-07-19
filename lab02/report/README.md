@@ -4,7 +4,7 @@ subtitle: "High Performance Coding - 2023"
 author: "Francesco Monti"
 date: 29.03.2023
 toc: false
-...
+---
 
 # Roofline model
 Pour construire le modèle de roofline, j'ai utilisé le script `compute_roofline` qui va lancer le microbenchmark de likwid avec les tests de _peakflops_ et _load_ pour définir les performances de l'ordinateur et faire une moyenne sur 5 tests. Vu que le processeur _Broadwell_ possède 4 ports permettant d'effectuer des opérations sur des entiers, et 2 sur les nombres à virgule flottante, j'ai multiplié la valeur de _peakflops_ par 2 pour avoir une estimation plus précise (c.f. [Roofline et ILP](#roofline-et-ilp)). Les valeurs de test sont 32KB pour le test _peakflops_ et 10MB pour le test _load_.

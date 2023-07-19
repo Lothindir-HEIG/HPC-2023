@@ -4,7 +4,7 @@ subtitle: "HPC 2023"
 date: 2.06.23
 author: "Francesco Monti"
 toc: false
-...
+---
 
 # Partie 1: Statistique de fichier parallélisée
 Pour cette partie, nous avons du implémenter une version parallélisée du décompte de caractères dans des fichiers texte. Pour ce faire, j'ai utilisé *OpenMP* et un système de buffer. Voici les détails de l'implémentation.

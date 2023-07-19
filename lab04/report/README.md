@@ -4,7 +4,7 @@ subtitle: "HPC 2023"
 author: "Francesco Monti"
 date: "11.05.2023"
 toc: false
-...
+---
 
 # Partie 1
 ### Compilation avec SIMD
